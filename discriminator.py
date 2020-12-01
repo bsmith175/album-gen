@@ -44,7 +44,17 @@ def test(net, inputs, labels):
     return net.accuracy(logits, labels)
 
 
-net = Net()
+if torch.cuda.is_available():
+    dev = 'cuda:0'
+    print("Training on GPU")
+else:
+    dev = 'cpu'
+    print("Training on CPU")
+
+dev = torch.device(dev)
+
+net = Net().to(dev)
+net = net.to(dev)
 net = net.double()
 # trials = 10
 # X = np.random.normal(size=(trials,3,64,64))
@@ -69,9 +79,9 @@ for epoch in range(num_epochs):
         count += 1
         X = batch[0]
         Y = batch[1]
-        X = torch.from_numpy(X)
+        X = torch.from_numpy(X).to(dev)
         X = X.double()
-        Y = torch.from_numpy(Y)
+        Y = torch.from_numpy(Y).to(dev)
         Y = Y.long()
         if count < 44:
             train_acc += train(net, X, Y)

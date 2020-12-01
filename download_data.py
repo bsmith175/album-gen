@@ -9,7 +9,7 @@ API = 'https://api.napster.com/'
 IMG_PER_ALBUM = 1000
 IMG_DIR = './data/'
 genres = ['rock', 'reggae', 'jazz', 'pop', 'country', 'rap-hip-hop', 'classical']
-genres = ['rap-hip-hop']
+# genres = ['rap-hip-hop']
 
 def get_genre_ids(shortcuts):
     print("Getting genre ids ...")
