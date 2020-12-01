@@ -5,20 +5,35 @@ from preprocess import get_data
 class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = torch.nn.Conv2d(3, 128, 4, stride=2, padding=1)
-        self.conv2 = torch.nn.Conv2d(128, 256, 4, stride=2, padding=1)
-        self.conv3 = torch.nn.Conv2d(256, 512, 4, stride=2, padding=1)
-        self.conv4 = torch.nn.Conv2d(512, 1024, 4, stride=2, padding=1)
+        # self.conv1 = torch.nn.Conv2d(3, 128, 4, stride=2, padding=1)
+        # self.batch_norm1 = torch.nn.BatchNorm2d(128)
+        # self.conv2 = torch.nn.Conv2d(128, 256, 4, stride=2, padding=1)
+        # self.batch_norm2 = torch.nn.BatchNorm2d(256)
+        # self.conv3 = torch.nn.Conv2d(256, 512, 4, stride=2, padding=1)
+        # self.batch_norm3 = torch.nn.BatchNorm2d(512)
+        # self.conv4 = torch.nn.Conv2d(512, 1024, 4, stride=2, padding=1)
+        # self.batch_norm4 = torch.nn.BatchNorm2d(1024)
+        pad = 2
+        num_categories = 7
+        self.conv1 = torch.nn.Conv2d(3, 64, 5, stride=2, padding=pad)
+        self.batch_norm1 = torch.nn.BatchNorm2d(64)
+        self.conv2 = torch.nn.Conv2d(64, 128, 5, stride=2, padding=pad)
+        self.batch_norm2 = torch.nn.BatchNorm2d(128)
+        self.conv3 = torch.nn.Conv2d(128, 256, 5, stride=2, padding=pad)
+        self.batch_norm3 = torch.nn.BatchNorm2d(256)
+        self.conv4 = torch.nn.Conv2d(256, 512, 5, stride=2, padding=pad)
+        self.batch_norm4 = torch.nn.BatchNorm2d(512)
         self.learning_rate = 1e-2
-        self.dense = torch.nn.Linear(16384,7)
+        self.dense = torch.nn.Linear(8192, num_categories)
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
 
     def forward(self, X):
-        X = torch.nn.functional.leaky_relu(self.conv1(X), negative_slope=0.1)
-        X = torch.nn.functional.leaky_relu(self.conv2(X), negative_slope=0.1)
-        X = torch.nn.functional.leaky_relu(self.conv3(X), negative_slope=0.1)
-        X = torch.nn.functional.leaky_relu(self.conv4(X), negative_slope=0.1)
-        X = torch.reshape(X, (-1, 16384))
+        X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
+        X = torch.nn.functional.leaky_relu(self.batch_norm2(self.conv2(X)), negative_slope=0.1)
+        X = torch.nn.functional.leaky_relu(self.batch_norm3(self.conv3(X)), negative_slope=0.1)
+        X = torch.nn.functional.leaky_relu(self.batch_norm4(self.conv4(X)), negative_slope=0.1)
+        # X = torch.reshape(X, (-1, 16384))
+        X = torch.reshape(X, (-1, 8192))
         return self.dense(X)
 
     def loss(self, logits, labels):
@@ -44,17 +59,7 @@ def test(net, inputs, labels):
     return net.accuracy(logits, labels)
 
 
-if torch.cuda.is_available():
-    dev = 'cuda:0'
-    print("Training on GPU")
-else:
-    dev = 'cpu'
-    print("Training on CPU")
-
-dev = torch.device(dev)
-
-net = Net().to(dev)
-net = net.to(dev)
+net = Net()
 net = net.double()
 # trials = 10
 # X = np.random.normal(size=(trials,3,64,64))
@@ -79,9 +84,9 @@ for epoch in range(num_epochs):
         count += 1
         X = batch[0]
         Y = batch[1]
-        X = torch.from_numpy(X).to(dev)
+        X = torch.from_numpy(X)
         X = X.double()
-        Y = torch.from_numpy(Y).to(dev)
+        Y = torch.from_numpy(Y)
         Y = Y.long()
         if count < 44:
             train_acc += train(net, X, Y)
