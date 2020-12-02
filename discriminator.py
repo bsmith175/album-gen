@@ -23,9 +23,9 @@ class Net(torch.nn.Module):
         self.batch_norm3 = torch.nn.BatchNorm2d(256)
         self.conv4 = torch.nn.Conv2d(256, 512, 5, stride=2, padding=pad)
         self.batch_norm4 = torch.nn.BatchNorm2d(512)
-        self.learning_rate = 1e-2
         self.dense = torch.nn.Linear(8192, num_categories)
-        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        self.learning_rate = 0.0001
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(0.5, 0.999))
 
     def forward(self, X):
         X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
@@ -58,54 +58,46 @@ def test(net, inputs, labels):
     logits = net(inputs)
     return net.accuracy(logits, labels)
 
+if __name__ == "__main__":
+    if torch.cuda.is_available():
+        dev = 'cuda:0'
+        print("Training on GPU")
+    else:
+        dev = 'cpu'
+        print("Training on CPU")
+    dev = torch.device(dev)
+    to_load = True
+    PATH = "net.pth"
+    net = Net().to(dev)
+    net = net.double()
+    if to_load:
+        net.load_state_dict(torch.load(PATH))
 
-if torch.cuda.is_available():
-    dev = 'cuda:0'
-    print("Training on GPU")
-else:
-    dev = 'cpu'
-    print("Training on CPU")
+    num_epochs = 10
+    batch_size = 128
+    for epoch in range(num_epochs):
+        print("Epoch: ", epoch)
+        train_acc = 0
+        test_acc = 0
+        count = 0
+        net.train()
+        for batch in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
+            count += 1
+            X = batch[0]
+            Y = batch[1]
+            X = torch.from_numpy(X).to(dev)
+            X = X.double()
+            Y = torch.from_numpy(Y).to(dev)
+            Y = Y.long()
+            if count < 44:
+                train_acc += train(net, X, Y)
+            else:
+                net.eval()
+                test_acc += test(net, X, Y)
+        print("Train Accuracy:", train_acc / count)
+        print("Test Accuracy:", test_acc / count)
 
-dev = torch.device(dev)
-
-net = Net().to(dev)
-net = net.to(dev)
-net = net.double()
-# trials = 10
-# X = np.random.normal(size=(trials,3,64,64))
-# Y = np.zeros(trials)
-# for i in range(trials):
-#     Y[i] = i%5
-# X_tensor = torch.from_numpy(X)
-# X_tensor = X_tensor.double()
-# Y_tensor = torch.from_numpy(Y)
-# Y_tensor = Y_tensor.long()
-
-
-
-num_epochs = 10
-batch_size = 128
-for epoch in range(num_epochs):
-    print("Epoch: ", epoch)
-    train_acc = 0
-    test_acc = 0
-    count = 0
-    for batch in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
-        count += 1
-        X = batch[0]
-        Y = batch[1]
-        X = torch.from_numpy(X).to(dev)
-        X = X.double()
-        Y = torch.from_numpy(Y).to(dev)
-        Y = Y.long()
-        if count < 44:
-            train_acc += train(net, X, Y)
-        else:
-            test_acc += test(net, X, Y)
-    print("Train Accuracy:", train_acc / count)
-    print("Test Accuracy:", test_acc / count)
-
-
+    torch.save(net.state_dict(), PATH)
 
 
 
