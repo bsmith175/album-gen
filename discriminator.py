@@ -4,7 +4,7 @@ import numpy as np
 class Discriminator(torch.nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.num_categories = 7
+        self.num_categories = 5
         # self.conv1 = torch.nn.Conv2d(3, 128, 4, stride=2, padding=1)
         # self.batch_norm1 = torch.nn.BatchNorm2d(128)
         # self.conv2 = torch.nn.Conv2d(128, 256, 4, stride=2, padding=1)
@@ -28,7 +28,7 @@ class Discriminator(torch.nn.Module):
         self.dense1 = torch.nn.Linear(8192, 2)
         self.dense2 = torch.nn.Linear(8192, self.num_categories)
         self.dense3 = torch.nn.Linear(8192, 2)
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.00002
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     if to_load:
         net.load_state_dict(torch.load(PATH))
 
-    num_epochs = 10
+    num_epochs = 500
     batch_size = 128
     for epoch in range(num_epochs):
         print("Epoch: ", epoch)
