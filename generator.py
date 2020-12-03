@@ -40,7 +40,7 @@ class Generator(torch.nn.Module):
         return torch.tanh(g5)
 
     def loss(self, fake_logits):
-        fake_labels = torch.ones((fake_logits.shape[0],)).long()
+        fake_labels = torch.ones((fake_logits.shape[0],)).long().to(dev)
         return torch.nn.functional.cross_entropy(fake_logits, fake_labels, reduction='mean')
 
 
