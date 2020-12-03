@@ -8,8 +8,15 @@ from PIL import Image
 
 def main():
 
-    discriminator = Discriminator()
-    generator = Generator()
+    if torch.cuda.is_available():
+        dev = 'cuda:0'
+        print("Training on GPU")
+    else:
+        dev = 'cpu'
+        print("Training on CPU")
+    #dev = 'cuda'
+    dev = torch.device(dev)
+    generator = Generator().to(dev)
     num_epochs = 1
     batch_size = 128
     cat_dim = 5
@@ -21,8 +28,8 @@ def main():
 
     for epoch in range(num_epochs):
         for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
-            real_images = torch.from_numpy(real_images)
-            cat_labels = torch.from_numpy(cat_labels).long()
+            real_images = torch.from_numpy(real_images).to(dev)
+            cat_labels = torch.from_numpy(cat_labels).long().to(dev)
             real_logits, real_cat_logits, _ = discriminator(real_images)
 
             discriminator.zero_grad()
