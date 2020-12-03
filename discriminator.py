@@ -94,7 +94,7 @@ if __name__ == "__main__":
             X = X.double()
             Y = torch.from_numpy(Y).to(dev)
             Y = Y.long()
-            if count < 44:
+            if count < 58:
                 train_acc += train(net, X, Y)
             else:
                 net.eval()

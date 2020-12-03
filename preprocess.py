@@ -33,7 +33,7 @@ def unpickle(file):
     return dict
 
 # yields tuple of 2 numpy arrays of shape (batch_size, 3, 64, 64) and (batch_size,)
-def get_data(input_file_path, label_file_path, batch_size, num_classes=7, image_dims=(64, 64), is_omacir=False):
+def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_dims=(64, 64), is_omacir=False):
     if is_omacir:
         for path, subdirs, files in os.walk(input_file_path):
             input_batch = np.empty((batch_size, 3, 64, 64))
