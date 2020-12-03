@@ -16,6 +16,9 @@ def main():
         print("Training on CPU")
     #dev = 'cuda'
     dev = torch.device(dev)
+    discriminator = Discriminator().to(dev)
+    ##call .eval() before testing
+    ##and call .train() if you are going to train again
     generator = Generator().to(dev)
     num_epochs = 1
     batch_size = 128
