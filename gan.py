@@ -12,7 +12,7 @@ def main():
     generator = Generator()
     num_epochs = 1
     batch_size = 128
-    cat_dim = 7
+    cat_dim = 5
     con_dim = 2
     rand_dim = 100
 
