@@ -14,7 +14,7 @@ class Net(torch.nn.Module):
         # self.conv4 = torch.nn.Conv2d(512, 1024, 4, stride=2, padding=1)
         # self.batch_norm4 = torch.nn.BatchNorm2d(1024)
         pad = 2
-        num_categories = 7
+        num_categories = 5
         self.conv1 = torch.nn.Conv2d(3, 64, 5, stride=2, padding=pad)
         self.batch_norm1 = torch.nn.BatchNorm2d(64)
         self.conv2 = torch.nn.Conv2d(64, 128, 5, stride=2, padding=pad)
@@ -24,7 +24,7 @@ class Net(torch.nn.Module):
         self.conv4 = torch.nn.Conv2d(256, 512, 5, stride=2, padding=pad)
         self.batch_norm4 = torch.nn.BatchNorm2d(512)
         self.dense = torch.nn.Linear(8192, num_categories)
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.00002
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(0.5, 0.999))
 
     def forward(self, X):
@@ -98,7 +98,7 @@ for epoch in range(num_epochs):
         X = X.double()
         Y = torch.from_numpy(Y).to(dev)
         Y = Y.long()
-        if count < 44:
+        if count < 58:
             train_acc += train(net, X, Y)
         else:
             test_acc += test(net, X, Y)
