@@ -52,57 +52,57 @@ class Discriminator(torch.nn.Module):
         return torch.mean(matches).item()
 
 
-# def train(net, inputs, labels):
-#     logits = net(inputs)
-#     loss = net.loss(logits, labels)
-#     loss.backward()
-#     net.optimizer.step()
-#     return net.accuracy(logits, labels)
-#
-# def test(net, inputs, labels):
-#     logits = net(inputs)
-#     return net.accuracy(logits, labels)
-#
-# if __name__ == "__main__":
-#     if torch.cuda.is_available():
-#         dev = 'cuda:0'
-#         print("Training on GPU")
-#     else:
-#         dev = 'cpu'
-#         print("Training on CPU")
-#     dev = torch.device(dev)
-#     to_load = True
-#     PATH = "net.pth"
-#     net = Net().to(dev)
-#     net = net.double()
-#     if to_load:
-#         net.load_state_dict(torch.load(PATH))
-#
-#     num_epochs = 10
-#     batch_size = 128
-#     for epoch in range(num_epochs):
-#         print("Epoch: ", epoch)
-#         train_acc = 0
-#         test_acc = 0
-#         count = 0
-#         net.train()
-#         for batch in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
-#             count += 1
-#             X = batch[0]
-#             Y = batch[1]
-#             X = torch.from_numpy(X).to(dev)
-#             X = X.double()
-#             Y = torch.from_numpy(Y).to(dev)
-#             Y = Y.long()
-#             if count < 44:
-#                 train_acc += train(net, X, Y)
-#             else:
-#                 net.eval()
-#                 test_acc += test(net, X, Y)
-#         print("Train Accuracy:", train_acc / count)
-#         print("Test Accuracy:", test_acc / count)
-#
-#     torch.save(net.state_dict(), PATH)
+def train(net, inputs, labels):
+    logits = net(inputs)
+    loss = net.loss(logits, labels)
+    loss.backward()
+    net.optimizer.step()
+    return net.accuracy(logits, labels)
+
+def test(net, inputs, labels):
+    logits = net(inputs)
+    return net.accuracy(logits, labels)
+
+if __name__ == "__main__":
+    if torch.cuda.is_available():
+        dev = 'cuda:0'
+        print("Training on GPU")
+    else:
+        dev = 'cpu'
+        print("Training on CPU")
+    dev = torch.device(dev)
+    to_load = True
+    PATH = "net.pth"
+    net = Net().to(dev)
+    net = net.double()
+    if to_load:
+        net.load_state_dict(torch.load(PATH))
+
+    num_epochs = 10
+    batch_size = 128
+    for epoch in range(num_epochs):
+        print("Epoch: ", epoch)
+        train_acc = 0
+        test_acc = 0
+        count = 0
+        net.train()
+        for batch in get_data('./data/inputs.npy', './data/labels.npy', batch_size):
+            count += 1
+            X = batch[0]
+            Y = batch[1]
+            X = torch.from_numpy(X).to(dev)
+            X = X.double()
+            Y = torch.from_numpy(Y).to(dev)
+            Y = Y.long()
+            if count < 44:
+                train_acc += train(net, X, Y)
+            else:
+                net.eval()
+                test_acc += test(net, X, Y)
+        print("Train Accuracy:", train_acc / count)
+        print("Test Accuracy:", test_acc / count)
+
+    torch.save(net.state_dict(), PATH)
 
 
 
