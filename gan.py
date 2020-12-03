@@ -45,7 +45,7 @@ def main():
             z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
             fake_images = generator(z_cat, z_con, z_rand)
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
-            fake_labels = torch.zeros((fake_logits.shape[0],)).long()
+            fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
             cats = torch.argmax(z_cat, 1)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
@@ -66,9 +66,9 @@ def main():
 
     generator.eval()
     test_size = 1
-    z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32))
-    z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32))
-    z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32))
+    z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32)).to(dev)
+    z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
+    z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
     img = generator(z_cat, z_con, z_rand).detach().numpy()
     img = np.rollaxis(img,1, 4)
     img = (img+1) * 127.5
