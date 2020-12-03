@@ -69,7 +69,7 @@ def get_data(input_file_path, label_file_path, batch_size, num_classes=7, image_
 
 
 genres = ['rock', 'jazz', 'pop', 'rap-hip-hop', 'classical']
-save_data(genres, './data/', (64, 64), force=False)
+#save_data(genres, './data/', (64, 64), force=False)
 # for batch in get_data('./data/omacir', './data/labels.npy', 200, 7, (64, 64), True):
 #     inputs, labels = batch
 #     print(inputs)

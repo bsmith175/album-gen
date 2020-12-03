@@ -81,7 +81,7 @@ if __name__ == "__main__":
         test_acc = 0
         count = 0
         net.train()
-        for batch in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
+        for batch in get_data('./data/inputs.npy', './data/labels.npy', batch_size):
             count += 1
             X = batch[0]
             Y = batch[1]
