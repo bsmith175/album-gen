@@ -59,7 +59,7 @@ def main():
             fake_logits, fake_cat_logits, _ = discriminator(fake_images)
             cats = torch.argmax(z_cat, 1)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
-            g_loss = generator.loss(fake_logits)
+            g_loss = generator.loss(fake_logits, dev)
             g_score = g_loss + d_fake_cat_loss * 10
             g_score.backward()
             generator.optimizer.step()
