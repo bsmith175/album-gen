@@ -33,16 +33,16 @@ def main():
         for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
-            real_logits, real_cat_logits, _ = Discriminator(real_images)
+            real_logits, real_cat_logits, _ = discriminator(real_images)
 
             discriminator.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
             d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
             real_d_score = d_real_loss + d_real_cat_loss * 10
 
-            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[batch_size, cat_dim]).astype(np.float32))
-            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32))
-            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32))
+            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[batch_size, cat_dim]).astype(np.float32)).to(dev)
+            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
+            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
             fake_images = generator(z_cat, z_con, z_rand)
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
             fake_labels = torch.zeros((fake_logits.shape[0],)).long()
