@@ -68,7 +68,7 @@ net = net.double()
 
 
 
-num_epochs = 10
+num_epochs = 500
 batch_size = 128
 for epoch in range(num_epochs):
     print("Epoch: ", epoch)
