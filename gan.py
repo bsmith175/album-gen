@@ -30,7 +30,7 @@ def main():
         for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
-            real_logits, real_cat_logits, _ = discriminator(real_images)
+            real_logits, real_cat_logits, _ = Discriminator(real_images)
 
             discriminator.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
