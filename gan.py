@@ -141,7 +141,7 @@ def fid_from_activations(act1, act2):
     return fid
 
 def main():
-    num_epochs = 2
+    num_epochs = 20
     num_output_imgs = 1
     discrim_save_path = './discrim.pth'
     gen_save_path = './gen.pth'
@@ -150,6 +150,7 @@ def main():
 
     generator = Generator()
     if to_load:
+        print('loading saved GAN state...')
         discriminator.load_state_dict(torch.load(discrim_save_path))
         generator.load_state_dict(torch.load(gen_save_path))
 
