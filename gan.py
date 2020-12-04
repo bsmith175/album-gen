@@ -13,7 +13,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
     con_dim = 2
     rand_dim = 100
 
-   if torch.cuda.is_available():
+    if torch.cuda.is_available():
         dev = 'cuda:0'
         print("Training on GPU")
     else:
@@ -125,7 +125,7 @@ def test_fid():
     print(fid)
 
 
-# from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
+# adapted from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
 def fid_from_activations(act1, act2):
     print(act1.shape)
     act1 = act1.numpy()
