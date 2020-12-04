@@ -63,12 +63,12 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             g_score.backward()
             generator.optimizer.step()
 
-    print('Saving state...\n')
-    torch.save(generator.state_dict(), gen_save_path)
-    torch.save(discriminator.state_dict(), discrim_save_path)
-    if fidmodel:
-        fid = calc_fid(fidmodel, real_images, fake_images)
-        print('FID: ' + fid)
+        print('Saving state...\n')
+        torch.save(generator.state_dict(), gen_save_path)
+        torch.save(discriminator.state_dict(), discrim_save_path)
+        if fidmodel:
+            fid = calc_fid(fidmodel, real_images, fake_images)
+            print('FID: ' + fid)
     
 
 def test(test_size=1):
@@ -128,8 +128,8 @@ def test_fid():
 # adapted from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
 def fid_from_activations(act1, act2):
     print(act1.shape)
-    act1 = act1.numpy()
-    act2 = act2.numpy()
+    act1 = act1.detach().cpu().numpy()
+    act2 = act2.detach().cpu().numpy()
     # calculate mean and covariance statistics
     mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
     mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
