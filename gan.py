@@ -77,11 +77,11 @@ def test(test_size=1):
     z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32)).to(dev)
     z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
     z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
-    img = generator(z_cat, z_con, z_rand).detach().numpy()
+    img = generator(z_cat, z_con, z_rand).detach().cpu().numpy()
     img = np.rollaxis(img,1, 4)
     img = (img+1) * 127.5
     img = img.astype(np.uint8)
-    out_dir = '/Users/jtsatsaros/Documents/album-gen'
+    out_dir = '.'
     # Convert to uint8
     # Save images to disk
     for i in range(0, test_size):
