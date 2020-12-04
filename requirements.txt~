@@ -1,5 +1,4 @@
 numpy >= 1.19.4
-scipy
 torch >= 1.7.0
 Pillow >= 8.0.1
 pip >= 20.2.4
