@@ -8,7 +8,7 @@ from torchvision import transforms
 from scipy.linalg import sqrtm
 
 def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None):
-    batch_size= 10
+    batch_size= 128
     cat_dim = 5
     con_dim = 2
     rand_dim = 100
@@ -104,7 +104,6 @@ def calc_fid(model, real_img, fake_img):
     fake_batch = preprocess(fake_img)
     # fake_batch = fake_img.unsqueeze(0)
     with torch.no_grad():
-        print(real_batch.shape)
         real_activation = model(real_batch.float())
         fake_activation = model(fake_batch.float())
     fid = fid_from_activations(real_activation, fake_activation)
@@ -117,12 +116,10 @@ def test_fid():
     images2 = images2.reshape((10, 3, 32,32))
     images1 = torch.from_numpy(images1)
     images2 = torch.from_numpy(images2)
-    print(images1.shape)
     model = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
     model = model.float()
     model.eval()
     fid = calc_fid(model, images1, images2)
-    print(fid)
 
 
 # adapted from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
@@ -141,7 +138,6 @@ def fid_from_activations(act1, act2):
         covmean = covmean.real
     # calculate score
     fid = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
-    print(fid)
     return fid
 
 def main():
@@ -150,7 +146,7 @@ def main():
     discrim_save_path = './discrim.pth'
     gen_save_path = './gen.pth'
     discriminator = Discriminator()
-    to_load = False
+    to_load = True
 
     generator = Generator()
     if to_load:
