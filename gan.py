@@ -151,10 +151,12 @@ def main():
     discrim_save_path = './discrim.pth'
     gen_save_path = './gen.pth'
     discriminator = Discriminator()
-    discriminator.load_state_dict(torch.load(discrim_save_path))
+    to_load = False
 
     generator = Generator()
-    generator.load_state_dict(torch.load(gen_save_path))
+    if to_load:
+        discriminator.load_state_dict(torch.load(discrim_save_path))
+        generator.load_state_dict(torch.load(gen_save_path))
 
     fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
     fidmodel = fidmodel.float()
