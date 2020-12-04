@@ -39,34 +39,34 @@ class Generator(torch.nn.Module):
         g5 = self.convt4(g4)
         return torch.tanh(g5)
 
-    def loss(self, fake_logits):
-        fake_labels = torch.ones((fake_logits.shape[0],)).long()
+    def loss(self, fake_logits, dev):
+        fake_labels = torch.ones((fake_logits.shape[0],)).long().to(dev)
         return torch.nn.functional.cross_entropy(fake_logits, fake_labels, reduction='mean')
 
 
 def main():
     print("running generator")
-    # if torch.cuda.is_available():
-    #     dev = 'cuda:0'
-    #     print("Training on GPU")
-    # else:
-    #     dev = 'cpu'
-    #     print("Training on CPU")
-    # #dev = 'cuda'
-    # dev = torch.device(dev)
-    # to_load = True
-    # PATH = "gen.pth"
-    # gen = Generator().to(dev)
-    gen = Generator()
+    if torch.cuda.is_available():
+        dev = 'cuda:0'
+        print("Training on GPU")
+    else:
+        dev = 'cpu'
+        print("Training on CPU")
+    #dev = 'cuda'
+    dev = torch.device(dev)
+    to_load = True
+    PATH = "gen.pth"
+    gen = Generator().to(dev)
+    # gen = Generator()
     cat_dim = 2
     con_dim = 2
     rand_dim = 100
     noise_dim = cat_dim + con_dim + rand_dim
     batch_size = 128
     #testing shapes - Got device type cpu error??
-    cat = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, cat_dim]).astype(np.float32))
-    con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32))
-    rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32))
+    cat = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, cat_dim]).astype(np.float32)).to(dev)
+    con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
+    rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
 
 
 

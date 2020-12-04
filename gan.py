@@ -13,14 +13,25 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
     con_dim = 2
     rand_dim = 100
 
-    ##call .eval() before testing
-    ##and call .train() if you are going to train again
+   if torch.cuda.is_available():
+        dev = 'cuda:0'
+        print("Training on GPU")
+    else:
+        dev = 'cpu'
+        print("Training on CPU")
+
+    dev = torch.device(dev)
+    discriminator = Discriminator().to(dev)
+    generator = Generator().to(dev)
+    if fidmodel:
+        fidmodel = fidmodel.to(dev)
+
     generator.train()
     for epoch in range(num_epochs):
         print("Epoch: " + str(epoch))
         for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
-            real_images = torch.from_numpy(real_images)
-            cat_labels = torch.from_numpy(cat_labels).long()
+            real_images = torch.from_numpy(real_images).to(dev)
+            cat_labels = torch.from_numpy(cat_labels).long().to(dev)
             real_logits, real_cat_logits, _ = discriminator(real_images)
 
             discriminator.zero_grad()
@@ -28,12 +39,12 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
             real_d_score = d_real_loss + d_real_cat_loss * 10
 
-            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[batch_size, cat_dim]).astype(np.float32))
-            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32))
-            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32))
+            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[batch_size, cat_dim]).astype(np.float32)).to(dev)
+            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
+            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
             fake_images = generator(z_cat, z_con, z_rand)
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
-            fake_labels = torch.zeros((fake_logits.shape[0],)).long()
+            fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
             cats = torch.argmax(z_cat, 1)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
@@ -47,7 +58,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fake_logits, fake_cat_logits, _ = discriminator(fake_images)
             cats = torch.argmax(z_cat, 1)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
-            g_loss = generator.loss(fake_logits)
+            g_loss = generator.loss(fake_logits, dev)
             g_score = g_loss + d_fake_cat_loss * 10
             g_score.backward()
             generator.optimizer.step()
@@ -57,26 +68,27 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
     torch.save(discriminator.state_dict(), discrim_save_path)
     if fidmodel:
         fid = calc_fid(fidmodel, real_images, fake_images)
+        print('FID: ' + fid)
     
 
-    def test(test_size=1):
-        generator.eval()
-        with torch.no_grad():
-            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32))
-            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32))
-            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32))
-            img = generator(z_cat, z_con, z_rand).detach().numpy()
-            img = np.rollaxis(img,1, 4)
-            img = (img+1) * 127.5
-            img = img.astype(np.uint8)
-            out_dir = '/Users/jtsatsaros/Documents/album-gen'
-            # Convert to uint8
-            # Save images to disk
-            for i in range(0, test_size):
-                img_i = img[i]
-                s = out_dir + '/' + str(i) + '.png'
-                img_i = Image.fromarray(img_i)
-                img_i.save(s)
+def test(test_size=1):
+    generator.eval()
+    test_size = 1
+    z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32)).to(dev)
+    z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
+    z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
+    img = generator(z_cat, z_con, z_rand).detach().numpy()
+    img = np.rollaxis(img,1, 4)
+    img = (img+1) * 127.5
+    img = img.astype(np.uint8)
+    out_dir = '/Users/jtsatsaros/Documents/album-gen'
+    # Convert to uint8
+    # Save images to disk
+    for i in range(0, test_size):
+        img_i = img[i]
+        s = out_dir + '/' + str(i) + '.png'
+        img_i = Image.fromarray(img_i)
+        img_i.save(s)
 
 #takes in two numpy arrays of size (num_images, 3, width, height)
 def calc_fid(model, real_img, fake_img):
@@ -148,7 +160,7 @@ def main():
     fidmodel = fidmodel.float()
     fidmodel.eval() 
     train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel)
-    test(num_output_imgs)
+    # test(num_output_imgs)
 
 
 if __name__ == '__main__':
