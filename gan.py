@@ -8,7 +8,7 @@ from torchvision import transforms
 from scipy.linalg import sqrtm
 
 def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None):
-    batch_size= 128
+    batch_size= 10
     cat_dim = 5
     con_dim = 2
     rand_dim = 100
@@ -68,7 +68,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         torch.save(discriminator.state_dict(), discrim_save_path)
         if fidmodel:
             fid = calc_fid(fidmodel, real_images, fake_images)
-            print('FID: ' + fid)
+            print('FID: ' + str(fid))
     
 
 def test(test_size=1):
@@ -127,14 +127,12 @@ def test_fid():
 
 # adapted from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
 def fid_from_activations(act1, act2):
-    print(act1.shape)
     act1 = act1.detach().cpu().numpy()
     act2 = act2.detach().cpu().numpy()
     # calculate mean and covariance statistics
     mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
     mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
     # calculate sum squared difference between means
-    print(sigma1)
     ssdiff = np.sum((mu1 - mu2)**2.0)
     # calculate sqrt of product between cov
     covmean = sqrtm(np.dot(sigma1, sigma2))
@@ -143,6 +141,7 @@ def fid_from_activations(act1, act2):
         covmean = covmean.real
     # calculate score
     fid = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
+    print(fid)
     return fid
 
 def main():
