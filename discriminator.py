@@ -4,7 +4,7 @@ import numpy as np
 class Discriminator(torch.nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.num_categories = 5
+        self.num_categories = 7
         # self.conv1 = torch.nn.Conv2d(3, 128, 4, stride=2, padding=1)
         # self.batch_norm1 = torch.nn.BatchNorm2d(128)
         # self.conv2 = torch.nn.Conv2d(128, 256, 4, stride=2, padding=1)
@@ -38,7 +38,7 @@ class Discriminator(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(self.batch_norm2(self.conv2(X)), negative_slope=0.1)
         X = torch.nn.functional.leaky_relu(self.batch_norm3(self.conv3(X)), negative_slope=0.1)
         X = torch.nn.functional.leaky_relu(self.batch_norm4(self.conv4(X)), negative_slope=0.1)
-        X = torch.reshape(X, (-1, 8192))
+        X = X.view(-1, 8192)
         return self.dense1(X), self.dense2(X), self.dense3(X)
 
     def loss(self, logits, labels):

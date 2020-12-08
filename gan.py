@@ -9,7 +9,7 @@ from scipy.linalg import sqrtm
 
 def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None):
     batch_size= 128
-    cat_dim = 5
+    cat_dim = 7
     con_dim = 2
     rand_dim = 100
 
@@ -39,16 +39,16 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
             real_d_score = d_real_loss + d_real_cat_loss * 10
 
-            z_cat = torch.Tensor(np.random.uniform(0, 1, size=[batch_size, cat_dim]).astype(np.float32)).to(dev)
-            z_con = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
-            z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
-            fake_images = generator(z_cat, z_con, z_rand)
+            z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim-1, size=[batch_size])).long().to(dev)
+            z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
+            z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
+            
+            fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
-            cats = torch.argmax(z_cat, 1)
-            d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
-            latent_loss = discriminator.latent_loss(latent_logits, z_con)
+            d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
+            latent_loss = discriminator.latent_loss(latent_logits, z_latent)
             fake_d_score = d_fake_loss + d_fake_cat_loss * 10 + latent_loss
             d_score = real_d_score + fake_d_score
             d_score.backward()
@@ -56,8 +56,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
             generator.zero_grad()
             fake_logits, fake_cat_logits, _ = discriminator(fake_images)
-            cats = torch.argmax(z_cat, 1)
-            d_fake_cat_loss = discriminator.loss(fake_cat_logits, cats)
+            d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
             g_score = g_loss + d_fake_cat_loss * 10
             g_score.backward()
@@ -73,11 +72,10 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
 def test(test_size=1):
     generator.eval()
-    test_size = 1
-    z_cat = torch.Tensor(np.random.uniform(0, 1, size=[test_size, cat_dim]).astype(np.float32)).to(dev)
-    z_con = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
-    z_rand = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
-    img = generator(z_cat, z_con, z_rand).detach().cpu().numpy()
+    z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim - 1, size=[batch_size])).long().to(dev)
+    z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
+    z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
+    img = generator(z_cat_labels, z_latent, z_rand_seed).detach().cpu().numpy()
     img = np.rollaxis(img,1, 4)
     img = (img+1) * 127.5
     img = img.astype(np.uint8)
@@ -146,7 +144,7 @@ def main():
     discrim_save_path = './discrim.pth'
     gen_save_path = './gen.pth'
     discriminator = Discriminator()
-    to_load = True
+    to_load = False
 
     generator = Generator()
     if to_load:
@@ -154,10 +152,12 @@ def main():
         discriminator.load_state_dict(torch.load(discrim_save_path))
         generator.load_state_dict(torch.load(gen_save_path))
 
-    fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
-    fidmodel = fidmodel.float()
-    fidmodel.eval() 
-    train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel)
+    # fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
+    # fidmodel = fidmodel.float()
+    # fidmodel.eval()
+    # train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel)
+    train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path)
+
     # test(num_output_imgs)
 
 
