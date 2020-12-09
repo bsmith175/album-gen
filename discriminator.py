@@ -4,7 +4,7 @@ import numpy as np
 class Discriminator(torch.nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.num_categories = 7
+        self.num_categories = 5
         # self.conv1 = torch.nn.Conv2d(3, 128, 4, stride=2, padding=1)
         # self.batch_norm1 = torch.nn.BatchNorm2d(128)
         # self.conv2 = torch.nn.Conv2d(128, 256, 4, stride=2, padding=1)

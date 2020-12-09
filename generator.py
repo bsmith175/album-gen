@@ -9,7 +9,7 @@ class Generator(torch.nn.Module):
         self.batch_size = 128
         self.stride = 2
         self.kernel_size = 5
-        self.cat_dim = 7
+        self.cat_dim = 5
         self.cat_transform_dim = 10
         self.latent_dim = 2
         self.rand_dim = 100

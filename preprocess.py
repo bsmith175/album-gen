@@ -56,7 +56,6 @@ def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_
 
 def save_omacir(data_dir, image_dims, force=False):
     batch_size = 10000
-    input_data = []
     data = []
     num_imgs = 0 
     num_batches = 0
@@ -76,11 +75,13 @@ def save_omacir(data_dir, image_dims, force=False):
                     print(e)
                 if num_imgs == batch_size:
                     num_imgs = 0
-                    np.save(data_dir + 'saved/' + str(num_batches) + '.npy')
+                    np.save(data_dir + 'saved/' + str(num_batches) + '.npy', np.asarray(data))
                     print('Batch: ' + str(num_batches) + ' saved to ' + data_dir + 'saved/' + str(num_batches) + '.npy')
+                    data = []
                     num_batches += 1
 
 genres = ['rock', 'jazz', 'pop', 'rap-hip-hop', 'classical']
+#save_omacir('/mnt/disks/dsk1/omacir/', (64, 64))
 #save_data(genres, './data/', (64, 64), force=False)
 # for batch in get_data('./data/omacir', './data/labels.npy', 200, 7, (64, 64), True):
 #     inputs, labels = batch
