@@ -27,7 +27,7 @@ class Generator(torch.nn.Module):
         self.norm3 = torch.nn.BatchNorm2d(128)
         self.convt4 = torch.nn.ConvTranspose2d(64, 3, self.kernel_size, stride=self.stride, padding=self.pad, output_padding=self.out_pad)
         self.norm4 = torch.nn.BatchNorm2d(64)
-        self.learning_rate = 1e-5
+        self.learning_rate = 3e-4
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
 

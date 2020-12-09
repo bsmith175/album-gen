@@ -98,7 +98,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             print('FID: ' + str(fid))
     
 
-def test(generator, test_size=1, cat_dim=5, batch_size=1, con_dim=2, rand_dim=100):
+def test(generator, test_size=10, cat_dim=5, batch_size=10, con_dim=2, rand_dim=100):
     if torch.cuda.is_available():
         dev = 'cuda:0'
         print("Training on GPU")
@@ -176,12 +176,12 @@ def fid_from_activations(act1, act2):
     return fid
 
 def main():
-    num_epochs = 20
+    num_epochs = 100
     num_output_imgs = 1
     discrim_save_path = './discrim_omacir.pth'
     gen_save_path = './gen_omacir.pth'
     discriminator = Discriminator()
-    to_load = False
+    to_load = True
 
     generator = Generator()
     if to_load:
@@ -189,7 +189,8 @@ def main():
         discriminator.load_state_dict(torch.load(discrim_save_path))
         generator.load_state_dict(torch.load(gen_save_path))
 
-    # test(generator)
+    test(generator)
+    return
     fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
     fidmodel = fidmodel.float()
     fidmodel.eval()
