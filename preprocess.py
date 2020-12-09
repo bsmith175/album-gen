@@ -36,25 +36,12 @@ def unpickle(file):
 def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_dims=(64, 64), is_omacir=False):
     if is_omacir:
         for path, subdirs, files in os.walk(input_file_path):
-            input_batch = np.empty((batch_size, 3, 64, 64), dtype=np.float32)
-            batch_count = 0
-            
             for filename in files:
-                try:
-                    img = Image.open(path + '/' + filename)
-                    img = ImageOps.fit(img, image_dims, Image.ANTIALIAS)
-                    img = img.convert('RGB')
-                    img = np.array(img, dtype=np.float32) / 127.5 - 1
-                    img = np.rollaxis(img, 2)
-                    input_batch[batch_count] = img
-                    batch_count += 1
-                except Exception as e:
-                    print(e)
-                if batch_count == batch_size:
-                    batch_count = 0
-                    label_batch = np.random.randint(0, num_classes, (batch_size,))
+                input_data = np.load(path + '/' + filename)
+                for i in range(0, input_data.shape[0], batch_size):
+                    input_batch = input_data[i:min(input_data.shape[0], i + batch_size)]
+                    label_batch = np.random.randint(0, num_classes, (input_batch.shape[0],))
                     yield input_batch, label_batch
-
     else:
         input_data = np.load(input_file_path)
         labels = np.load(label_file_path)

@@ -33,8 +33,8 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         d_cat_accuracies_real = []
         d_cat_accuracies_fake = []
         print("Epoch: " + str(epoch))
-        for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size, is_omacir=False):
-            breakpoint()
+        for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir', 'data/labels.npy', batch_size, is_omacir=is_omacir):
+            print(type(real_images))
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
             real_logits, real_cat_logits, _ = discriminator(real_images)
