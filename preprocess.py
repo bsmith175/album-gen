@@ -36,7 +36,7 @@ def unpickle(file):
 def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_dims=(64, 64), is_omacir=False):
     if is_omacir:
         for path, subdirs, files in os.walk(input_file_path):
-            input_batch = np.empty((batch_size, 3, 64, 64))
+            input_batch = np.empty((batch_size, 3, 64, 64), dtype=np.float32)
             batch_count = 0
             
             for filename in files:
@@ -49,6 +49,7 @@ def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_
                     input_batch[batch_count] = img
                     batch_count += 1
                 except Exception as e:
+                    os.remove(path + '/' + filename)
                     print(e)
                 if batch_count == batch_size:
                     batch_count = 0
