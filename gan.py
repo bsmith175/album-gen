@@ -7,7 +7,7 @@ from PIL import Image
 from torchvision import transforms
 from scipy.linalg import sqrtm
 
-def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None):
+def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None, is_omacir=False):
     batch_size= 128
     cat_dim = 7
     con_dim = 2
@@ -28,6 +28,10 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
     generator.train()
     for epoch in range(num_epochs):
+        d_accuracies_real = []
+        d_accuracies_fake = []
+        d_cat_accuracies_real = []
+        d_cat_accuracies_fake = []
         print("Epoch: " + str(epoch))
         for real_images, cat_labels in get_data('data/inputs.npy', 'data/labels.npy', batch_size):
             real_images = torch.from_numpy(real_images).to(dev)
@@ -36,7 +40,15 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
             discriminator.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
+
+            d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
+            d_accuracies_real.append(d_real_accuracy)
+            
             d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
+            if not is_omacir:
+                d_real_cat_accuracy = discriminator.accuracy(real_cat_logits, cat_labels)
+                d_cat_accuracies_real.append(d_real_cat_accuracy)
+
             real_d_score = d_real_loss + d_real_cat_loss * 10
 
             z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim-1, size=[batch_size])).long().to(dev)
@@ -46,11 +58,19 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
+
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             latent_loss = discriminator.latent_loss(latent_logits, z_latent)
             fake_d_score = d_fake_loss + d_fake_cat_loss * 10 + latent_loss
             d_score = real_d_score + fake_d_score
+
+            d_fake_accuracy = discriminator.accuracy(fake_logits, fake_labels)
+            d_accuracies_fake.append(d_fake_accuracy)
+            if not is_omacir:
+                d_fake_cat_accuracy = discriminator.accuracy(fake_cat_logits, z_cat_labels)
+                d_cat_accuracies_fake.append(d_fake_cat_accuracy)
+
             d_score.backward()
             discriminator.optimizer.step()
 
@@ -65,6 +85,10 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         print('Saving state...\n')
         torch.save(generator.state_dict(), gen_save_path)
         torch.save(discriminator.state_dict(), discrim_save_path)
+        print('Discriminator accuracy on real images: ' + str(sum(d_accuracies_real) / len(d_accuracies_real)))
+        print('Discriminator accuracy on generated images: ' + str(sum(d_accuracies_fake) / len(d_accuracies_fake)))
+        print('Discriminator category accuracy on real images: ' + str(sum(d_cat_accuracies_real) / len(d_cat_accuracies_real)))
+        print('Discriminator category accuracy on fake images: ' + str(sum(d_cat_accuracies_fake) / len(d_cat_accuracies_fake)))
         if fidmodel:
             fid = calc_fid(fidmodel, real_images, fake_images)
             print('FID: ' + str(fid))
@@ -120,7 +144,7 @@ def test_fid():
     fid = calc_fid(model, images1, images2)
 
 
-# adapted from https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
+# based on https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distance-fid-from-scratch/
 def fid_from_activations(act1, act2):
     act1 = act1.detach().cpu().numpy()
     act2 = act2.detach().cpu().numpy()
@@ -141,8 +165,8 @@ def fid_from_activations(act1, act2):
 def main():
     num_epochs = 20
     num_output_imgs = 1
-    discrim_save_path = './discrim.pth'
-    gen_save_path = './gen.pth'
+    discrim_save_path = './discrim_omacir.pth'
+    gen_save_path = './gen_omacir.pth'
     discriminator = Discriminator()
     to_load = False
 
@@ -152,11 +176,11 @@ def main():
         discriminator.load_state_dict(torch.load(discrim_save_path))
         generator.load_state_dict(torch.load(gen_save_path))
 
-    # fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
-    # fidmodel = fidmodel.float()
-    # fidmodel.eval()
-    # train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel)
-    train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path)
+    fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
+    fidmodel = fidmodel.float()
+    fidmodel.eval()
+    train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel, is_omacir=True)
+    # train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path)
 
     # test(num_output_imgs)
 
