@@ -36,7 +36,7 @@ def unpickle(file):
 def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_dims=(64, 64), is_omacir=False):
     if is_omacir:
         for path, subdirs, files in os.walk(input_file_path):
-            input_batch = np.empty((batch_size, 3, 64, 64))
+            input_batch = np.empty((batch_size, 3, 64, 64), dtype=np.float32)
             batch_count = 0
             
             for filename in files:
@@ -67,6 +67,31 @@ def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_
             yield input_data[i:min(input_data.shape[0], i + batch_size)], labels[i: min(labels.shape[0], i + batch_size)]
 
 
+def save_omacir(data_dir, image_dims, force=False):
+    batch_size = 10000
+    input_data = []
+    data = []
+    num_imgs = 0 
+    num_batches = 0
+    for path, subdirs, files in os.walk(data_dir):
+
+            for filename in files:
+                try:
+                    img = Image.open(path + '/' + filename)
+                    img = ImageOps.fit(img, image_dims, Image.ANTIALIAS)
+                    img = img.convert('RGB')
+                    img = np.array(img, dtype=np.float32) / 127.5 - 1
+                    img = np.rollaxis(img, 2)
+                    data.append(img)
+                    num_imgs += 1
+                except Exception as e:
+                    os.remove(path + '/' + filename)
+                    print(e)
+                if num_imgs == batch_size:
+                    num_imgs = 0
+                    np.save(data_dir + 'saved/' + str(num_batches) + '.npy')
+                    print('Batch: ' + str(num_batches) + ' saved to ' + data_dir + 'saved/' + str(num_batches) + '.npy')
+                    num_batches += 1
 
 genres = ['rock', 'jazz', 'pop', 'rap-hip-hop', 'classical']
 #save_data(genres, './data/', (64, 64), force=False)
