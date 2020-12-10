@@ -34,7 +34,7 @@ class Discriminator(torch.nn.Module):
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
-        self.real_loss = torch.BCEWithLogitsLoss()
+        self.real_loss = torch.nn.BCELoss()
 
     def forward(self, X):
         X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
