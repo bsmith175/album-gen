@@ -36,7 +36,7 @@ def unpickle(file):
 def get_data(input_file_path, label_file_path, batch_size, num_classes=5, image_dims=(64, 64), is_omacir=False):
     if is_omacir:
         for path, subdirs, files in os.walk(input_file_path):
-            for filename in files[0:1]:
+            for filename in files:
                 input_data = np.load(path + '/' + filename)
                 for i in range(0, input_data.shape[0], batch_size):
                     input_batch = input_data[i:min(input_data.shape[0], i + batch_size)]
