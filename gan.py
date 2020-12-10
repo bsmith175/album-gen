@@ -7,6 +7,11 @@ from PIL import Image
 from torchvision import transforms
 from scipy.linalg import sqrtm
 
+def add_noise(tensor, mean, stddev, dev):
+    noise = tensor.data.new(tensor.size()).to(dev).normal_(mean, stddev)
+    return tensor + noise
+
+
 def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None, is_omacir=False):
     batch_size= 128
     cat_dim = 5
@@ -45,7 +50,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
 
             discriminator.optimizer.zero_grad()
-            real_logits, real_cat_logits, _ = discriminator(real_images)
+            real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, 1, dev))
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
 
             d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
@@ -58,7 +63,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
             real_d_score = d_real_loss if is_omacir else d_real_loss + d_real_cat_loss * 10
 
-            fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
+            fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images, 0, 1, dev).detach())
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
 
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
@@ -78,7 +83,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             discriminator.optimizer.step()
 
             generator.optimizer.zero_grad()
-            fake_logits, fake_cat_logits, _ = discriminator(fake_images)
+            fake_logits, fake_cat_logits, _ = discriminator(add_noise(fake_images, 0, 1, dev))
             if not is_omacir:
                 d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
