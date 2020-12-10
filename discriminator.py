@@ -25,7 +25,7 @@ class Discriminator(torch.nn.Module):
         self.batch_norm3 = torch.nn.BatchNorm2d(256)
         self.conv4 = torch.nn.Conv2d(256, 512, 5, stride=self.stride, padding=self.pad)
         self.batch_norm4 = torch.nn.BatchNorm2d(512)
-        self.dense1 = torch.nn.Linear(8192, 2)
+        self.dense1 = torch.nn.Linear(8192, 1)
         self.dense2 = torch.nn.Linear(8192, self.num_categories)
         self.dense3 = torch.nn.Linear(8192, 2)
         self.dropout = torch.nn.Dropout()
