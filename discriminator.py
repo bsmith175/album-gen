@@ -51,7 +51,7 @@ class Discriminator(torch.nn.Module):
         return torch.nn.functional.cross_entropy(logits, labels, reduction='mean')
 
     def real_accuracy(self, predicted, labels):
-        logits = torch.nn.sigmoid(predicted)
+        logits = torch.nn.Softmax(predicted)
         print(logits)
         logits = logits > 0.5
         return (logits == labels).sum().item() / labels.size(0)
