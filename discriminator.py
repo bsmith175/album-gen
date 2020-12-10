@@ -50,8 +50,12 @@ class Discriminator(torch.nn.Module):
     def class_loss(self, logits, labels):
         return torch.nn.functional.cross_entropy(logits, labels, reduction='mean')
 
+    def real_accuracy(self, predicted, labels):
+        logits = torch.nn.functional.softmax(predicted)
+        logits = logits > 0.5
+        return (logits == labels).sum().item() / labels.size(0)
 
-    def accuracy(self, logits, labels):
+    def class_accuracy(self, logits, labels):
         predicted = torch.argmax(logits, 1)
         matches = torch.eq(predicted, labels)
         matches = matches.type(torch.FloatTensor)

@@ -68,12 +68,12 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 d_real_loss = discriminator.real_loss(real_logits, smoothed_targets)
                 d_losses_real.append(d_real_loss)
 
-                d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
+                d_real_accuracy = discriminator.real_accuracy(real_logits, torch.ones_like(cat_labels))
                 d_accuracies_real.append(d_real_accuracy)
 
                 if not is_omacir:
                     d_real_cat_loss = discriminator.class_loss(real_cat_logits, cat_labels)
-                    d_real_cat_accuracy = discriminator.accuracy(real_cat_logits, cat_labels)
+                    d_real_cat_accuracy = discriminator.class_accuracy(real_cat_logits, cat_labels)
                     d_cat_accuracies_real.append(d_real_cat_accuracy)
 
                 real_d_score = d_real_loss if is_omacir else d_real_loss + d_real_cat_loss * 10
@@ -90,10 +90,10 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 fake_d_score = d_fake_loss if is_omacir else d_fake_loss + d_fake_cat_loss * 10 + latent_loss
                 d_score = real_d_score + fake_d_score
 
-                d_fake_accuracy = discriminator.accuracy(fake_logits, fake_labels)
+                d_fake_accuracy = discriminator.real_accuracy(fake_logits, fake_labels)
                 d_accuracies_fake.append(d_fake_accuracy)
                 if not is_omacir:
-                    d_fake_cat_accuracy = discriminator.accuracy(fake_cat_logits, z_cat_labels)
+                    d_fake_cat_accuracy = discriminator.class_accuracy(fake_cat_logits, z_cat_labels)
                     d_cat_accuracies_fake.append(d_fake_cat_accuracy)
 
                 d_score.backward()
@@ -125,10 +125,11 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fids.append(fid)
             print('FID: ' + str(fid))
         total_g_losses.append(sum(g_losses) / len(g_losses))
-        total_d_losses_fake.append(sum(d_losses_fake) / len(d_losses_fake))
-        total_d_losses_real.append(sum(d_losses_real) / len(d_losses_real))
-        total_d_accuracies_real.append(sum(d_accuracies_real) / len(d_accuracies_real))
-        total_d_accuracies_fake.append(sum(d_accuracies_fake) / len(d_accuracies_fake))
+        if epoch % 2 == 0:
+            total_d_losses_fake.append(sum(d_losses_fake) / len(d_losses_fake))
+            total_d_losses_real.append(sum(d_losses_real) / len(d_losses_real))
+            total_d_accuracies_real.append(sum(d_accuracies_real) / len(d_accuracies_real))
+            total_d_accuracies_fake.append(sum(d_accuracies_fake) / len(d_accuracies_fake))
         if not is_omacir:
             total_d_cat_accuracies_real.append(sum(d_cat_accuracies_real) / len(d_cat_accuracies_real))
             total_d_cat_accuracies_fake.append(sum(d_cat_accuracies_fake) / len(d_cat_accuracies_fake))
