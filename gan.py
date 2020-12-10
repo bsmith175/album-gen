@@ -7,6 +7,11 @@ from PIL import Image
 from torchvision import transforms
 from scipy.linalg import sqrtm
 
+def add_noise(tensor, mean, stddev, dev):
+    noise = torch.Variable(tensor.data.new(tensor.size()).normal_(mean, stddev)).to(dev)
+    return tensor + noise
+
+
 def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_path, fidmodel=None, is_omacir=False):
     batch_size= 128
     cat_dim = 5
@@ -37,7 +42,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir/saved/', 'data/labels.npy', batch_size, is_omacir=is_omacir):
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
-            real_logits, real_cat_logits, _ = discriminator(real_images)
+            real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, 1, dev))
 
             discriminator.optimizer.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
@@ -57,7 +62,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
             
             fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
-            fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
+            fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images.detach(), 0, 1, dev))
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
 
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
@@ -76,7 +81,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             discriminator.optimizer.step()
 
             generator.optimizer.zero_grad()
-            fake_logits, fake_cat_logits, _ = discriminator(fake_images)
+            fake_logits, fake_cat_logits, _ = discriminator(add_noise(fake_images, 0, 1, dev))
             if not is_omacir:
                 d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
@@ -182,7 +187,7 @@ def main():
     discrim_save_path = './discrim_omacir.pth'
     gen_save_path = './gen_omacir.pth'
     discriminator = Discriminator()
-    to_load = True
+    to_load = False
 
     generator = Generator()
     if to_load:
