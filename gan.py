@@ -33,6 +33,9 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         d_cat_accuracies_real = []
         d_cat_accuracies_fake = []
         g_losses = []
+        d_losses_fake = []
+        d_losses_real = []
+        fids = []
         print("Epoch: " + str(epoch))
         for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir/saved/', 'data/labels.npy', batch_size, is_omacir=is_omacir):
             real_images = torch.from_numpy(real_images).to(dev)
@@ -41,7 +44,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
             discriminator.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
-
+            d_losses_real.append(d_real_loss)
             d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
             d_accuracies_real.append(d_real_accuracy)
             
@@ -61,6 +64,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
 
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
+            d_losses_fake.append(d_fake_loss)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             latent_loss = discriminator.latent_loss(latent_logits, z_latent)
             fake_d_score = d_fake_loss if is_omacir else d_fake_loss + d_fake_cat_loss * 10 + latent_loss
@@ -79,6 +83,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fake_logits, fake_cat_logits, _ = discriminator(fake_images)
             d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
+            g_losses.append(g_loss)
             g_losses.append(g_loss.item())
             g_score = g_loss + d_fake_cat_loss * 10
             g_score.backward()
@@ -96,6 +101,8 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         if fidmodel:
             fid = calc_fid(fidmodel, real_images, fake_images)
             print('FID: ' + str(fid))
+    
+def plot_loss(gen_loss, d_loss_fake, d_loss_real):
     
 
 def test(generator, test_size=10, cat_dim=5, batch_size=10, con_dim=2, rand_dim=100):
