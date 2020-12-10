@@ -58,6 +58,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, 1, dev))
                 smoothed_targets = torch.ones_like(cat_labels).float().to(dev)
                 smoothed_targets = smoothed_targets.view(-1,1)
+
                 d_real_loss = discriminator.real_loss(real_logits, smoothed_targets)
                 d_losses_real.append(d_real_loss)
 
