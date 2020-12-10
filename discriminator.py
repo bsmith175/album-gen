@@ -28,7 +28,8 @@ class Discriminator(torch.nn.Module):
         self.dense1 = torch.nn.Linear(8192, 2)
         self.dense2 = torch.nn.Linear(8192, self.num_categories)
         self.dense3 = torch.nn.Linear(8192, 2)
-        self.learning_rate = 0.00002
+        self.dropout = torch.nn.Dropout()
+        self.learning_rate = .0001
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
@@ -39,6 +40,7 @@ class Discriminator(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(self.batch_norm3(self.conv3(X)), negative_slope=0.1)
         X = torch.nn.functional.leaky_relu(self.batch_norm4(self.conv4(X)), negative_slope=0.1)
         X = X.view(-1, 8192)
+        X = self.dropout(X)
         return self.dense1(X), self.dense2(X), self.dense3(X)
 
     def loss(self, logits, labels):
