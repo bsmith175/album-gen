@@ -73,7 +73,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
                 fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images, 0, 1, dev).detach())
                 fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
-            
+
                 d_fake_loss = discriminator.real_loss(fake_logits, fake_labels)
                 d_losses_fake.append(d_fake_loss)
                 if is_omacir:
@@ -102,7 +102,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             g_score.backward()
             generator.optimizer.step()
 
-        if epoch % 5 == 0:
+        if epoch % 4 == 0:
             print('Saving state...\n')
             torch.save(generator.state_dict(), gen_save_path + str(epoch) + ".pth")
             torch.save(discriminator.state_dict(), discrim_save_path +  + str(epoch) + ".pth")
@@ -155,7 +155,7 @@ def plot_loss(gen_loss, d_loss_fake, d_loss_real, acc_real, acc_fake, name):
     plt.legend()
     # save plot to file
     plt.savefig(r'results/' + name + '.png')
-        print('saved plot to file: ' + r'results/' + name + '.png')
+    print('saved plot to file: ' + r'results/' + name + '.png')
     plt.close()
 
 
