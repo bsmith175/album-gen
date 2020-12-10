@@ -99,7 +99,6 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 d_fake_cat_loss = discriminator.class_loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
             g_losses.append(g_loss)
-            g_losses.append(g_loss.item())
             g_score = g_loss if is_omacir else g_loss + d_fake_cat_loss * 10
             g_score.backward()
             generator.optimizer.step()
