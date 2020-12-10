@@ -48,28 +48,28 @@ class Generator(torch.nn.Module):
 
 
 def main():
-    print("running generator")
-    if torch.cuda.is_available():
-        dev = 'cuda:0'
-        print("Training on GPU")
-    else:
-        dev = 'cpu'
-        print("Training on CPU")
-    #dev = 'cuda'
-    dev = torch.device(dev)
-    to_load = True
-    PATH = "gen.pth"
-    gen = Generator().to(dev)
-    # gen = Generator()
-    cat_dim = 5
-    latent_dim = 2
-    rand_dim = 100
-    noise_dim = cat_dim + latent_dim + rand_dim
-    batch_size = 128
-    #testing shapes - Got device type cpu error??
-    z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim - 1, size=[batch_size]).astype(np.int32)).to(dev)
-    z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
-    z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
+    # print("running generator")
+    # if torch.cuda.is_available():
+    #     dev = 'cuda:0'
+    #     print("Training on GPU")
+    # else:
+    #     dev = 'cpu'
+    #     print("Training on CPU")
+    # #dev = 'cuda'
+    # dev = torch.device(dev)
+    # to_load = True
+    # PATH = "gen.pth"
+    # gen = Generator().to(dev)
+    # # gen = Generator()
+    # cat_dim = 5
+    # latent_dim = 2
+    # rand_dim = 100
+    # noise_dim = cat_dim + latent_dim + rand_dim
+    # batch_size = 128
+    # #testing shapes - Got device type cpu error??
+    # z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim - 1, size=[batch_size]).astype(np.int32)).to(dev)
+    # z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
+    # z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
 
 
 
