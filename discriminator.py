@@ -34,7 +34,7 @@ class Discriminator(torch.nn.Module):
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
-        self.softmax = torch.nn.Softmax()
+        self.sigmoid = torch.nn.Sigmoid()
 
     def forward(self, X):
         X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
@@ -52,7 +52,7 @@ class Discriminator(torch.nn.Module):
         return torch.nn.functional.cross_entropy(logits, labels, reduction='mean')
 
     def real_accuracy(self, predicted, labels):
-        logits = self.softmax(predicted)
+        logits = self.sigmoid(predicted)
         print(logits)
         logits = logits > 0.5
         return (logits == labels).sum().item() / labels.size(0)
