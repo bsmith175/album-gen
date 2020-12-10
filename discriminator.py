@@ -30,7 +30,7 @@ class Discriminator(torch.nn.Module):
         self.dense3 = torch.nn.Linear(8192, 2)
         self.dropout = torch.nn.Dropout()
         self.dropout2d = torch.nn.Dropout2d()
-        self.learning_rate = .0001
+        self.learning_rate = .00001
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()

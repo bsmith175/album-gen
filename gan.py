@@ -60,9 +60,10 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             
             fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
 
-            if epoch % 2 == 0:
+            if epoch % 3 == 0:
+                stddev = 2 * (0.01) ** (epoch/num_epochs)
                 discriminator.optimizer.zero_grad()
-                real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, 1, dev))
+                real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, stddev, dev))
                 smoothed_targets = torch.ones_like(cat_labels).float().to(dev)
                 smoothed_targets = 0.9 * smoothed_targets.view(-1,1)
 
@@ -81,7 +82,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 real_d_score = d_real_loss if is_omacir else d_real_loss + d_real_cat_loss * 10
 
 
-                fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images, 0, 1, dev).detach())
+                fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images, 0, stddev, dev).detach())
                 fake_labels = torch.zeros((fake_logits.shape[0],1)).to(dev)
 
                 d_fake_loss = discriminator.real_loss(fake_logits, fake_labels)
@@ -115,7 +116,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             print('Saving state...\n')
             torch.save(generator.state_dict(), gen_save_path + str(epoch) + ".pth")
             torch.save(discriminator.state_dict(), discrim_save_path + str(epoch) + ".pth")
-        if epoch % 2 == 0:
+        if epoch % 3 == 0:
             print('Discriminator accuracy on real images: ' + str(sum(d_accuracies_real) / len(d_accuracies_real)))
             print('Discriminator accuracy on generated images: ' + str(sum(d_accuracies_fake) / len(d_accuracies_fake)))
         print('Generator loss : ' + str(sum(g_losses) / len(g_losses)))
@@ -127,7 +128,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             fids.append(fid)
             print('FID: ' + str(fid))
         total_g_losses.append(sum(g_losses) / len(g_losses))
-        if epoch % 2 == 0:
+        if epoch % 3 == 0:
             total_d_losses_fake.append(sum(d_losses_fake) / len(d_losses_fake))
             total_d_losses_real.append(sum(d_losses_real) / len(d_losses_real))
             total_d_accuracies_real.append(sum(d_accuracies_real) / len(d_accuracies_real))
@@ -265,7 +266,7 @@ def fid_from_activations(act1, act2):
     return fid
 
 def main():
-    num_epochs = 100
+    num_epochs = 80
     num_output_imgs = 1
     discrim_save_path = './discrim_omacir'
     gen_save_path = './gen_omacir'
