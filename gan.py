@@ -106,7 +106,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         if epoch % 4 == 0:
             print('Saving state...\n')
             torch.save(generator.state_dict(), gen_save_path + str(epoch) + ".pth")
-            torch.save(discriminator.state_dict(), discrim_save_path +  + str(epoch) + ".pth")
+            torch.save(discriminator.state_dict(), discrim_save_path + str(epoch) + ".pth")
         print('Discriminator accuracy on real images: ' + str(sum(d_accuracies_real) / len(d_accuracies_real)))
         print('Discriminator accuracy on generated images: ' + str(sum(d_accuracies_fake) / len(d_accuracies_fake)))
         print('Generator loss : ' + str(sum(g_losses) / len(g_losses)))
