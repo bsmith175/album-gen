@@ -31,8 +31,15 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
     generator = Generator().to(dev)
     if fidmodel:
         fidmodel = fidmodel.to(dev)
-
     generator.train()
+    fids = []
+    total_d_accuracies_real = []
+    total_d_accuracies_fake = []
+    total_d_cat_accuracies_real = []
+    total_d_cat_accuracies_fake = []
+    total_g_losses = []
+    total_d_losses_fake = []
+    total_d_losses_real = []
     for epoch in range(num_epochs):
         d_accuracies_real = []
         d_accuracies_fake = []
@@ -41,7 +48,6 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         g_losses = []
         d_losses_fake = []
         d_losses_real = []
-        fids = []
         print("Epoch: " + str(epoch))
         for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir/saved/', 'data/labels.npy', batch_size, is_omacir=is_omacir):
             real_images = torch.from_numpy(real_images).to(dev)
@@ -92,7 +98,6 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             if not is_omacir:
                 d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
-            g_losses.append(g_loss)
             g_losses.append(g_loss.item())
             g_score = g_loss if is_omacir else g_loss + d_fake_cat_loss * 10
             g_score.backward()
@@ -109,18 +114,29 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             print('Discriminator category accuracy on fake images: ' + str(sum(d_cat_accuracies_fake) / len(d_cat_accuracies_fake)))
         if fidmodel:
             fid = calc_fid(fidmodel, real_images, fake_images)
+            fids.append(fid)
             print('FID: ' + str(fid))
-        plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, 'epoch' + str(epoch))
-        generate_sample(generator, epoch)
-    plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, 'total')
+        total_g_losses.append(sum(g_losses) / len(g_losses))
+        total_d_losses_fake.append(sum(d_losses_fake) / len(d_losses_fake))
+        total_d_losses_real.append(sum(d_losses_real) / len(d_losses_real))
+        total_d_accuracies_real.append(sum(d_accuracies_real) / len(d_accuracies_real))
+        total_d_accuracies_fake.append(sum(d_accuracies_fake) / len(d_accuracies_fake))
+        if not is_omacir:
+            total_d_cat_accuracies_real.append(sum(d_cat_accuracies_real) / len(d_cat_accuracies_real))
+            total_d_cat_accuracies_fake.append(sum(d_cat_accuracies_fake) / len(d_cat_accuracies_fake))
+
+        plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, fids,  'epoch' + str(epoch))
+        generate_sample(generator, epoch, dev)
+    plot_loss(total_g_losses, total_d_losses_fake, total_d_losses_real, total_d_accuracies_real, total_d_accuracies_fake, fids, 'total')
     
-def generate_sample(g_model, epoch, cat_dim=5, con_dim=2, latent_dim=100):
+def generate_sample(g_model, epoch, dev, cat_dim=5, con_dim=2, latent_dim=100):
     n = 9
+    batch_size = n
     g_model.eval()
     with torch.no_grad():
         z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim - 1, size=[batch_size])).long().to(dev)
-        z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, con_dim]).astype(np.float32)).to(dev)
-        z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[test_size, rand_dim]).astype(np.float32)).to(dev)
+        z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[n, con_dim]).astype(np.float32)).to(dev)
+        z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[n, latent_dim]).astype(np.float32)).to(dev)
         img = g_model(z_cat_labels, z_latent, z_rand_seed).detach().cpu().numpy()
     img = np.rollaxis(img,1, 4)
     img = (img+1) * 127.5
@@ -132,25 +148,29 @@ def generate_sample(g_model, epoch, cat_dim=5, con_dim=2, latent_dim=100):
         plt.subplot(3, 3, 1 + i)
         plt.axis('off')
         plt.imshow(img[i])
-    pyplot.savefig(r'results/sample_epoch' + str(epoch) + '.png')
+    plt.savefig(r'results/sample_epoch' + str(epoch) + '.png')
     print('saved sample images to ' + r'results/sample_epoch' + str(epoch) + '.png')
     g_model.train()
 
-def plot_loss(gen_loss, d_loss_fake, d_loss_real, acc_real, acc_fake, name):
+def plot_loss(gen_loss, d_loss_fake, d_loss_real, acc_real, acc_fake, fid, name):
     # plot loss
-    plt.subplot(2, 1, 1)
+    plt.subplot(3, 1, 1)
     plt.plot(d_loss_real, label='D-loss real')
     plt.plot(d_loss_fake, label='D-loss fake')
     plt.plot(gen_loss, label='Generator loss')
     plt.legend()
     # plot discriminator accuracy
-    plt.subplot(2, 1, 2)
+    plt.subplot(3, 1, 2)
     plt.plot(acc_real, label='Accuracy - real')
     plt.plot(acc_fake, label='Accuracy - fake')
     plt.legend()
+    # plot FID scores
+    plt.subplot(3, 1, 3)
+    plt.plot(fid, label='FID Scores')
+    plt.legend()
     # save plot to file
     plt.savefig(r'results/' + name + '.png')
-        print('saved plot to file: ' + r'results/' + name + '.png')
+    print('saved plot to file: ' + r'results/' + name + '.png')
     plt.close()
 
 
@@ -234,12 +254,12 @@ def fid_from_activations(act1, act2):
     return fid
 
 def main():
-    num_epochs = 1
+    num_epochs = 3
     num_output_imgs = 1
     discrim_save_path = './discrim_omacir.pth'
     gen_save_path = './gen_omacir.pth'
     discriminator = Discriminator()
-    to_load = True
+    to_load = False
 
     generator = Generator()
     if to_load:
