@@ -112,7 +112,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             print('FID: ' + str(fid))
         plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, 'epoch' + str(epoch))
         generate_sample(generator, epoch)
-    plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, 'total')) 
+    plot_loss(g_losses, d_losses_fake, d_losses_real, d_accuracies_real, d_accuracies_fake, 'total')
     
 def generate_sample(g_model, epoch, cat_dim=5, con_dim=2, latent_dim=100):
     n = 9
@@ -150,7 +150,7 @@ def plot_loss(gen_loss, d_loss_fake, d_loss_real, acc_real, acc_fake, name):
 	plt.legend()
 	# save plot to file
 	plt.savefig(r'results/' + name + '.png')
-    print('saved plot to file: ' + r'results/' + name + '.png')
+        print('saved plot to file: ' + r'results/' + name + '.png')
 	plt.close()
 
 
@@ -234,7 +234,7 @@ def fid_from_activations(act1, act2):
     return fid
 
 def main():
-    num_epochs = 100
+    num_epochs = 1
     num_output_imgs = 1
     discrim_save_path = './discrim_omacir.pth'
     gen_save_path = './gen_omacir.pth'
@@ -247,8 +247,8 @@ def main():
         discriminator.load_state_dict(torch.load(discrim_save_path))
         generator.load_state_dict(torch.load(gen_save_path))
 
-    test(generator)
-    return
+    #test(generator)
+    #return
     fidmodel = torch.hub.load('pytorch/vision:v0.6.0', 'inception_v3', pretrained=True)
     fidmodel = fidmodel.float()
     fidmodel.eval()
