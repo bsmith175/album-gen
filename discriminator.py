@@ -53,8 +53,9 @@ class Discriminator(torch.nn.Module):
 
     def real_accuracy(self, predicted, labels):
         logits = self.sigmoid(predicted)
-        print(logits)
         logits = logits > 0.5
+        print("new call")
+        print(logits==labels)
         return (logits == labels).sum().item() / labels.size(0)
 
     def class_accuracy(self, logits, labels):
