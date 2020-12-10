@@ -138,20 +138,20 @@ def generate_sample(g_model, epoch, cat_dim=5, con_dim=2, latent_dim=100):
 
 def plot_loss(gen_loss, d_loss_fake, d_loss_real, acc_real, acc_fake, name):
     # plot loss
-	plt.subplot(2, 1, 1)
-	plt.plot(d_loss_real, label='D-loss real')
-	plt.plot(d_loss_fake, label='D-loss fake')
-	plt.plot(gen_loss, label='Generator loss')
-	plt.legend()
-	# plot discriminator accuracy
-	plt.subplot(2, 1, 2)
-	plt.plot(acc_real, label='Accuracy - real')
-	plt.plot(acc_fake, label='Accuracy - fake')
-	plt.legend()
-	# save plot to file
-	plt.savefig(r'results/' + name + '.png')
+    plt.subplot(2, 1, 1)
+    plt.plot(d_loss_real, label='D-loss real')
+    plt.plot(d_loss_fake, label='D-loss fake')
+    plt.plot(gen_loss, label='Generator loss')
+    plt.legend()
+    # plot discriminator accuracy
+    plt.subplot(2, 1, 2)
+    plt.plot(acc_real, label='Accuracy - real')
+    plt.plot(acc_fake, label='Accuracy - fake')
+    plt.legend()
+    # save plot to file
+    plt.savefig(r'results/' + name + '.png')
         print('saved plot to file: ' + r'results/' + name + '.png')
-	plt.close()
+    plt.close()
 
 
 
