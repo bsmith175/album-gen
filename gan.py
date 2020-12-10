@@ -49,7 +49,11 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         d_losses_fake = []
         d_losses_real = []
         print("Epoch: " + str(epoch))
+        count = 0
         for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir/saved/', 'data/labels.npy', batch_size, is_omacir=is_omacir):
+            if count > 1:
+                continue
+            count += 1
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
 
