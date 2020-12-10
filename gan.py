@@ -39,7 +39,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
             real_logits, real_cat_logits, _ = discriminator(real_images)
 
-            discriminator.zero_grad()
+            discriminator.optimizer.zero_grad()
             d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
 
             d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
@@ -75,12 +75,13 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             d_score.backward()
             discriminator.optimizer.step()
 
-            generator.zero_grad()
+            generator.optimizer.zero_grad()
             fake_logits, fake_cat_logits, _ = discriminator(fake_images)
-            d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
+            if not is_omacir:
+                d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
             g_loss = generator.loss(fake_logits, dev)
             g_losses.append(g_loss.item())
-            g_score = g_loss + d_fake_cat_loss * 10
+            g_score = g_loss if is_omacir else g_loss + d_fake_cat_loss * 10
             g_score.backward()
             generator.optimizer.step()
 
