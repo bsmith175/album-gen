@@ -72,7 +72,8 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
                 d_real_loss = discriminator.real_loss(real_logits, smoothed_targets)
                 d_losses_real.append(d_real_loss)
 
-                d_real_accuracy = discriminator.real_accuracy(real_logits, torch.ones_like(cat_labels))
+                real_labels = torch.ones((real_logits.shape[0],1)).to(dev)
+                d_real_accuracy = discriminator.real_accuracy(real_logits, real_labels)
                 d_accuracies_real.append(d_real_accuracy)
 
                 if not is_omacir:
