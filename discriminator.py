@@ -26,7 +26,6 @@ class Discriminator(torch.nn.Module):
         self.conv4 = torch.nn.Conv2d(256, 512, 5, stride=self.stride, padding=self.pad)
         self.batch_norm4 = torch.nn.BatchNorm2d(512)
         self.dense1 = torch.nn.Linear(8192, 1)
-        self.softmax = torch.nn.functional.softmax()
         self.dense2 = torch.nn.Linear(8192, self.num_categories)
         self.dense3 = torch.nn.Linear(8192, 2)
         self.dropout = torch.nn.Dropout()
@@ -35,7 +34,6 @@ class Discriminator(torch.nn.Module):
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
-        self.real_loss = torch.BCEWithLogitsLoss()
 
     def forward(self, X):
         X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
@@ -44,8 +42,10 @@ class Discriminator(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(self.batch_norm4(self.conv4(X)), negative_slope=0.1)
         X = X.view(-1, 8192)
         X = self.dropout(X)
-        return self.softmax(self.dense1(X)), self.dense2(X), self.dense3(X)
+        return self.dense1(X), self.dense2(X), self.dense3(X)
 
+    def real_loss(self, logits, labels):
+        return torch.nn.functional.binary_cross_entropy_with_logits(logits, labels)
 
     def class_loss(self, logits, labels):
         return torch.nn.functional.cross_entropy(logits, labels, reduction='mean')
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         dev = 'cpu'
         print("Training on CPU")
     dev = torch.device(dev)
-    to_load = True
+    to_load = False
     PATH = "net.pth"
     net = Net().to(dev)
     net = net.double()

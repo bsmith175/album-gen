@@ -62,7 +62,9 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             if epoch % 2 == 0:
                 discriminator.optimizer.zero_grad()
                 real_logits, real_cat_logits, _ = discriminator(add_noise(real_images, 0, 1, dev))
-                smoothed_targets = 0.9 * torch.ones_like(cat_labels).float().to(dev)
+                smoothed_targets = torch.ones_like(cat_labels).float().to(dev)
+                smoothed_targets = 0.9 * smoothed_targets.view(-1,1)
+
                 d_real_loss = discriminator.real_loss(real_logits, smoothed_targets)
                 d_losses_real.append(d_real_loss)
 
@@ -78,8 +80,8 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
 
 
                 fake_logits, fake_cat_logits, latent_logits = discriminator(add_noise(fake_images, 0, 1, dev).detach())
-                fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
-            
+                fake_labels = torch.zeros((fake_logits.shape[0],1)).to(dev)
+
                 d_fake_loss = discriminator.real_loss(fake_logits, fake_labels)
                 d_losses_fake.append(d_fake_loss)
                 if is_omacir:
@@ -107,7 +109,7 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
             g_score.backward()
             generator.optimizer.step()
 
-        if epoch % 5 == 0:
+        if epoch % 4 == 0:
             print('Saving state...\n')
             torch.save(generator.state_dict(), gen_save_path + str(epoch) + ".pth")
             torch.save(discriminator.state_dict(), discrim_save_path +  + str(epoch) + ".pth")

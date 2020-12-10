@@ -48,7 +48,7 @@ class Generator(torch.nn.Module):
 
 
 def main():
-    # print("running generator")
+    print("running generator")
     # if torch.cuda.is_available():
     #     dev = 'cuda:0'
     #     print("Training on GPU")
