@@ -37,32 +37,34 @@ def train_gan(discriminator, generator, num_epochs, gen_save_path, discrim_save_
         for real_images, cat_labels in get_data('/mnt/disks/dsk1/omacir/saved/', 'data/labels.npy', batch_size, is_omacir=is_omacir):
             real_images = torch.from_numpy(real_images).to(dev)
             cat_labels = torch.from_numpy(cat_labels).long().to(dev)
-            real_logits, real_cat_logits, _ = discriminator(real_images)
-
-            discriminator.optimizer.zero_grad()
-            d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
-
-            d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
-            d_accuracies_real.append(d_real_accuracy)
-            
-            d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
-            if not is_omacir:
-                d_real_cat_accuracy = discriminator.accuracy(real_cat_logits, cat_labels)
-                d_cat_accuracies_real.append(d_real_cat_accuracy)
-
-            real_d_score = d_real_loss if is_omacir else d_real_loss + d_real_cat_loss * 10
 
             z_cat_labels = torch.Tensor(np.random.randint(0, cat_dim-1, size=[batch_size])).long().to(dev)
             z_latent = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, con_dim]).astype(np.float32)).to(dev)
             z_rand_seed = torch.Tensor(np.random.uniform(-1, 1, size=[batch_size, rand_dim]).astype(np.float32)).to(dev)
             
             fake_images = generator(z_cat_labels, z_latent, z_rand_seed)
+
+            discriminator.optimizer.zero_grad()
+            real_logits, real_cat_logits, _ = discriminator(real_images)
+            d_real_loss = discriminator.loss(real_logits, torch.ones_like(cat_labels))
+
+            d_real_accuracy = discriminator.accuracy(real_logits, torch.ones_like(cat_labels))
+            d_accuracies_real.append(d_real_accuracy)
+             
+            if not is_omacir:
+                d_real_cat_loss = discriminator.loss(real_cat_logits, cat_labels)
+                d_real_cat_accuracy = discriminator.accuracy(real_cat_logits, cat_labels)
+                d_cat_accuracies_real.append(d_real_cat_accuracy)
+
+            real_d_score = d_real_loss if is_omacir else d_real_loss + d_real_cat_loss * 10
+
             fake_logits, fake_cat_logits, latent_logits = discriminator(fake_images.detach())
             fake_labels = torch.zeros((fake_logits.shape[0],)).long().to(dev)
 
             d_fake_loss = discriminator.loss(fake_logits, fake_labels)
-            d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
-            latent_loss = discriminator.latent_loss(latent_logits, z_latent)
+            if is_omacir:
+                d_fake_cat_loss = discriminator.loss(fake_cat_logits, z_cat_labels)
+                latent_loss = discriminator.latent_loss(latent_logits, z_latent)
             fake_d_score = d_fake_loss if is_omacir else d_fake_loss + d_fake_cat_loss * 10 + latent_loss
             d_score = real_d_score + fake_d_score
 
