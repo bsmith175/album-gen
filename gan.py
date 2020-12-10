@@ -244,7 +244,7 @@ def main():
     discrim_save_path = './discrim_omacir'
     gen_save_path = './gen_omacir'
     discriminator = Discriminator()
-    to_load = True
+    to_load = False
 
     generator = Generator()
     if to_load:

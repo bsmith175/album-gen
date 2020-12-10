@@ -34,7 +34,7 @@ class Discriminator(torch.nn.Module):
         self.beta1 = 0.5
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(self.beta1, 0.999))
         self.latent_loss = torch.nn.MSELoss()
-        self.real_loss = torch.nn.BCELoss()
+        self.real_loss = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, X):
         X = torch.nn.functional.leaky_relu(self.batch_norm1(self.conv1(X)), negative_slope=0.1)
@@ -43,7 +43,7 @@ class Discriminator(torch.nn.Module):
         X = torch.nn.functional.leaky_relu(self.batch_norm4(self.conv4(X)), negative_slope=0.1)
         X = X.view(-1, 8192)
         X = self.dropout(X)
-        return torch.nn.functional.softmax(self.dense1(X)), self.dense2(X), self.dense3(X)
+        return self.dense1(X), self.dense2(X), self.dense3(X)
 
 
     def class_loss(self, logits, labels):
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         dev = 'cpu'
         print("Training on CPU")
     dev = torch.device(dev)
-    to_load = True
+    to_load = False
     PATH = "net.pth"
     net = Net().to(dev)
     net = net.double()
